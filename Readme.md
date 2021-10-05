@@ -1,7 +1,57 @@
-### PoC for Minio Client
-[Doc](https://gist.github.com/ChakshuGautam/9b9daa4fcb10fe9336521a3d9efb9a45)
+## Integration with Minio
 
-This doc just has the last step.
+### Steps for integration
+1. Login using Fusionauth and get the JWT from that. Note - the User needs to have a registration to the Application `CDN` in fusionauth for this. 
+2. Get the bucket temp crendentials using following API. Update `<<JWT Token>>` with the token you got from step 1; `<<Bucket Name>>` needs to be added prior and you can ask your admin to do this for you. `<<Token Duration>>` is in seconds - try to keep an upper limit by the limit of JWT.
+  ```js
+  var requestOptions = {
+    method: 'POST',
+    redirect: 'follow'
+  };
+
+  fetch("https://cdn.samagra.io/minio/<<Bucket Name>>/?Action=AssumeRoleWithWebIdentity&DurationSeconds=<<Token Duration>>&WebIdentityToken=<<JWT Token>>&Version=2011-06-15", requestOptions)
+    .then(response => response.text())
+    .then(result => console.log(result))
+    .catch(error => console.log('error', error));
+  ```
+3. You will get a respose similar to this from the above API call.
+  ```XML
+  <?xml version="1.0" encoding="UTF-8"?>
+  <AssumeRoleWithWebIdentityResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+      <AssumeRoleWithWebIdentityResult>
+          <AssumedRoleUser>
+              <Arn></Arn>
+              <AssumeRoleId></AssumeRoleId>
+          </AssumedRoleUser>
+          <Credentials>
+              <AccessKeyId>Bla Bla Access Key</AccessKeyId>
+              <SecretAccessKey>Bla Bla Secret Key</SecretAccessKey>
+              <Expiration>2021-03-17T16:12:26Z</Expiration>
+              <SessionToken>Bla Bla Session Token</SessionToken>
+          </Credentials>
+          <SubjectFromWebIdentityToken>11803383-f1a5-4b7f-ba4e-b2693f3aec33</SubjectFromWebIdentityToken>
+      </AssumeRoleWithWebIdentityResult>
+      <ResponseMetadata>
+          <RequestId>166D2A31C74CB99A</RequestId>
+      </ResponseMetadata>
+  </AssumeRoleWithWebIdentityResponse>
+  ```
+4. Take the following elements out - `<AccessKeyId>` and `<SecretAccessKey>`. Now you can use the minio client like this.
+  ```js
+  var Minio = require('minio')
+
+  var minioClient = new Minio.Client({
+      endPoint: 'play.min.io',
+      port: 9000,
+      useSSL: true,
+      accessKey: 'Q3AM3UQ867SPQQA43P2F',
+      secretKey: 'zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG'
+  });
+  ```
+
+### Problems with this approach
+1. The `<<Token Duration>>` needs to be really small to disallow misuse.
+2. The `<AssumedRoleUser>` is currently not moderated and needs to be handled better either on the CDN front or on the frontend.
 
 ### Setting up the policy for minio
 Assuming `e-samwad` is the bucket name and `esamwad` is the policy name
@@ -53,3 +103,6 @@ Assuming `e-samwad` is the bucket name and `esamwad` is the policy name
 
 ### Starting the app
 `node index.js`
+
+## Annexure
+[Minio Client to be used](https://docs.min.io/docs/javascript-client-api-reference.html)
