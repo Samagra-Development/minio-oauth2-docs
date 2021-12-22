@@ -3,6 +3,9 @@ var file = '/Users/apple/Work/minio/test.txt'
 var Minio = require('minio')
 require('dotenv').config()
 
+const bucketID = process.env.bucketID;
+console.log(bucketID);
+
 var minioClient = new Minio.Client({
     endPoint: 'cdn.samagra.io',
     useSSL: true,
@@ -16,7 +19,7 @@ var fileStat = Fs.stat(file, async function(err, stats) {
   if (err) {
     return console.log(err)
   }
-  minioClient.putObject('e-samwad', 'test2.txt', fileStream, stats.size, function(err, objInfo) {
+  minioClient.putObject(bucketID, 'test.txt', fileStream, stats.size, function(err, objInfo) {
       if(err) {
           return console.log(err) // err should be null
       }
