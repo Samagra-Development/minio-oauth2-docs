@@ -1,28 +1,35 @@
-var Fs = require('fs')
-var file = '/Users/apple/Work/minio/test.txt'
-var Minio = require('minio')
-require('dotenv').config()
+var Fs = require("fs");
+var file = "/Users/chakshugautam/Work/minio-oauth2/test.png";
+var Minio = require("minio");
+require("dotenv").config();
 
 const bucketID = process.env.bucketID;
 console.log(bucketID);
 
 var minioClient = new Minio.Client({
-    endPoint: 'cdn.samagra.io',
-    useSSL: true,
-    accessKey: process.env.accessKey,
-    secretKey: process.env.secretKey,
-    sessionToken: process.env.sessionToken
+  endPoint: "cdn.samagra.io",
+  useSSL: true,
+  accessKey: process.env.accessKey,
+  secretKey: process.env.secretKey,
+  sessionToken: process.env.sessionToken,
 });
 
-var fileStream = Fs.createReadStream(file)
-var fileStat = Fs.stat(file, async function(err, stats) {
-  if (err) {
-    return console.log(err)
-  }
-  minioClient.putObject(bucketID, 'test.txt', fileStream, stats.size, function(err, objInfo) {
-      if(err) {
-          return console.log(err) // err should be null
+
+var metaData = {
+  "Content-Type": "png/image",
+};
+const insertImageFile = () =>
+  minioClient.fPutObject(
+    bucketID,
+    "test-image.png",
+    file,
+    metaData,
+    function (err, objInfo) {
+      if (err) {
+        return console.log(err); // err should be null
       }
-   console.log("Success", objInfo)
-  })
-});
+      console.log("Success", objInfo);
+    }
+  );
+
+insertImageFile();
