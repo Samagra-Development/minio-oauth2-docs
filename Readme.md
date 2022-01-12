@@ -102,6 +102,9 @@ Assuming `e-samwad` is the bucket name and `esamwad` is the policy name
 }
 ```
 
+4. To allow a folder to have anonymous download access
+`/mc policy set download local2/<bucket-name>/<sub-folder>/`
+
 ### Starting the app
 `node index.js`
 
